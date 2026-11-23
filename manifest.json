@@ -1,0 +1,10 @@
+{
+  "name": "مصروفي",
+  "short_name": "مصروفي",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "lang": "ar",
+  "dir": "rtl"
+}
