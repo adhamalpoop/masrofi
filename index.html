@@ -70,7 +70,7 @@ button.natb{font-size:12px;padding:4px 8px}
 .chip small{opacity:.7;font-size:11px;margin-inline-start:4px}
 .curline{margin-top:6px;color:var(--muted);font-size:13px}.curline b{color:var(--text)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row.tap{cursor:pointer}.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 #wallets .row{flex-wrap:wrap}#wallets .row .mid{flex:1 1 55%;min-width:0}#wallets .row .mid b{white-space:normal}
 .ic{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
@@ -200,6 +200,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     <label>مرفق (صورة فاتورة أو PDF)</label>
     <input id="file" type="file" accept="image/*,application/pdf">
     <button id="save">حفظ</button>
+    <button id="editCancel" class="sec hide" type="button" style="margin-top:8px">إلغاء التعديل</button>
   </div>
 </section>
 
@@ -259,9 +260,14 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     <button data-go="fav"><i data-ic="star"></i><span>المفضلين</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="debt"><i data-ic="users"></i><span>الديون</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="cats"><i data-ic="grid"></i><span>إدارة التصنيفات</span><i data-ic="chev" data-cls="chv"></i></button>
+    <button data-go="trash"><i data-ic="trash"></i><span>سلة المهملات</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="set"><i data-ic="sliders"></i><span>الإعدادات</span><i data-ic="chev" data-cls="chv"></i></button>
   </div>
 </section>
+
+<section class="page" id="p-trash"><div class="card"><h3>سلة المهملات</h3>
+  <div class="muted" style="margin-bottom:8px">اللي بتحذفه بيفضل هنا 30 يوم وبعدها بيتمسح لوحده. تقدر ترجعه في أي وقت قبل كده.</div>
+  <div id="trashList"></div><button class="sec" id="trashEmpty" data-trall="1" style="margin-top:10px">تفضية السلة</button></div></section>
 
 <section class="page" id="p-fav"><div class="card"><h3>المفضلين</h3>
   <input id="favSearch" placeholder="ابحث عن شخص" autocomplete="off">
@@ -416,8 +422,8 @@ var TYPES={expense:'مصروف',income:'دخل',lent:'سلفت',borrowed:'است
 var PLUS={income:1,borrowed:1,repay_in:1};
 var DEF_EXP='أكل وشرب\n- مطاعم\n- بقالة\nمواصلات\n- أجرة\n- بنزين\nفواتير\nأقساط\nمشتريات\nصحة\nترفيه\nأخرى';
 var DEF_INC='مرتب\nعمل حر\nهدايا\nأخرى';
-var TITLES={cats:'إدارة التصنيفات',home:'مصروفي',add:'إضافة عملية',list:'المعاملات',report:'التقارير',more:'المزيد',debt:'الديون',fav:'المفضلين',wal:'المحافظ والتحويلات',rec:'العمليات الثابتة',set:'الإعدادات'};
-var SUB_OF_MORE={fav:1,debt:1,wal:1,rec:1,set:1,cats:1};
+var TITLES={cats:'إدارة التصنيفات',home:'مصروفي',add:'إضافة عملية',list:'المعاملات',report:'التقارير',more:'المزيد',debt:'الديون',fav:'المفضلين',trash:'سلة المهملات',wal:'المحافظ والتحويلات',rec:'العمليات الثابتة',set:'الإعدادات'};
+var SUB_OF_MORE={trash:1,fav:1,debt:1,wal:1,rec:1,set:1,cats:1};
 var EMPTY={Transactions:[],Wallets:[],Transfers:[],Recurring:[],Categories:[],Settings:[]};
 var $=function(i){return document.getElementById(i)};
 function parseCats(text){var t=[];String(text||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;if(l.charAt(0)==='-'){var s=l.replace(/^-+\s*/,'');if(s&&t.length)t[t.length-1].subs.push(s)}else t.push({name:l,subs:[]})});return t}
@@ -527,7 +533,7 @@ function txRow(r,withDel){
   var cls=debt?'db':inc?'in':'out',sym=ic(debt?'users':catIc(r.category));
   var title=debt?(TYPES[r.type]+' - '+(r.person||'')):(r.category||TYPES[r.type]);
   var sub=[r.subcategory,r.date+(r.time&&r.time!=='00:00'?' '+r.time:''),wname(r.wallet),debt?'':(r.person?'مع '+r.person:''),r.note].filter(Boolean).join(' | ');
-  return '<div class="row"><div class="ic '+cls+'">'+sym+'</div><div class="mid"><b>'+esc(title)+'</b><small>'+esc(sub)+(r.file?' <a href="https://drive.google.com/file/d/'+esc(r.file)+'/view" target="_blank">مرفق</a>':'')+'</small></div><div class="amt '+(inc?'in-c':'out-c')+'">'+(inc?'+':'-')+num(r.amount)+(wcur(r.wallet)!=='EGP'?' <small>'+wcur(r.wallet)+'</small>':'')+'</div>'+(r.type==='expense'&&withDel?'<button class="sm sec natb" data-natid="'+esc(r.id)+'">'+natL(nat(r))+'</button>':'')+(withDel?'<button class="sm del" data-id="'+esc(r.id)+'">حذف</button>':'')+'</div>';
+  return '<div class="row tap" data-txid="'+esc(r.id)+'"><div class="ic '+cls+'">'+sym+'</div><div class="mid"><b>'+esc(title)+'</b><small>'+esc(sub)+(r.file?' <a href="https://drive.google.com/file/d/'+esc(r.file)+'/view" target="_blank">مرفق</a>':'')+'</small></div><div class="amt '+(inc?'in-c':'out-c')+'">'+(inc?'+':'-')+num(r.amount)+(wcur(r.wallet)!=='EGP'?' <small>'+wcur(r.wallet)+'</small>':'')+'</div>'+(r.type==='expense'&&withDel?'<button class="sm sec natb" data-natid="'+esc(r.id)+'">'+natL(nat(r))+'</button>':'')+(withDel?'<button class="sm del" data-id="'+esc(r.id)+'">حذف</button>':'')+'</div>';
 }
 function bySort(a,b){return (a.date+a.time)<(b.date+b.time)?1:-1}
 
@@ -874,6 +880,7 @@ function cmAction(ds){
   if(act==='sdel'){if(confirm('تحذف "'+c.subs[j]+'" من القايمة؟\nالعمليات القديمة هتفضل زي ما هي.')){c.subs.splice(j,1);persistCats()}return}
 }
 function go(p){
+  if(typeof EDIT!=='undefined'&&EDIT)endEdit();
   document.querySelectorAll('.page').forEach(function(s){s.classList.toggle('on',s.id==='p-'+p)});
   var navKey=SUB_OF_MORE[p]?'more':p;
   document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.nav===navKey)});
@@ -923,13 +930,21 @@ $('pick').onclick=function(){
 };
 $('save').onclick=function(){
   var debt=A.kind==='debt',t=debt?A.dt:A.kind,a=parseFloat($('amount').value);
-  if(!$('wallet').value){msg('اضف محفظة الأول');return}
+  if(!$('wallet').value&&!(EDIT&&!EDIT.wallet)){msg('اضف محفظة الأول');return}
   if(!(a>0)){msg('اكتب المبلغ');return}
   if(debt&&!$('person').value){msg('اختار الشخص');return}
   if(!debt&&curTree().length&&!A.main){msg('اختار التصنيف');return}
   var row={date:$('date').value,time:$('time').value,type:t,amount:a,wallet:$('wallet').value,category:debt?'':A.main,subcategory:debt?'':A.sub,note:$('note').value,person:$('person').value.trim(),phone:$('phone').value.trim(),nature:t==='expense'?A.nat:''};
   $('save').disabled=true;
   var fl=$('file').files[0];
+  if(EDIT){
+    var eid=EDIT.id;
+    (fl?prepFile(fl).then(function(o){msg('برفع الملف...');o.action='upload';return api(o)}).then(function(j){row.file=j.fileId}):Promise.resolve())
+     .then(function(){return api({action:'set',table:'Transactions',id:eid,fields:row})})
+     .then(function(){endEdit();msg('اتعدلت ✓');go('list');return load()})
+     .catch(function(e){msg(String(e))}).then(function(){$('save').disabled=false});
+    return;
+  }
   (fl?prepFile(fl).then(function(o){msg('برفع الملف...');o.action='upload';return api(o)}).then(function(j){row.file=j.fileId}):Promise.resolve())
    .then(function(){return add('Transactions',row)}).then(function(){A.nat='عادي';document.querySelectorAll('#natChips .chip').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-nat')==='عادي')});$('amount').value='';$('note').value='';$('person').value='';$('phone').value='';$('file').value='';$('time').value=nowTime();A.main='';A.sub='';$('catSearch').value='';renderChips();msg('اتحفظ ✓');return load()})
    .catch(function(e){msg(String(e))}).then(function(){$('save').disabled=false});
@@ -965,10 +980,13 @@ document.body.onclick=function(e){
   if(ds.fq!==undefined){var ff=A.freq[+ds.fq];A.main=ff.main;A.sub=ff.sub;renderChips();return}
   if(ds.mi!==undefined){var c=curTree()[+ds.mi];A.main=(A.main===c.name?'':c.name);A.sub='';renderChips();return}
   if(ds.si!==undefined){var s=subsOf(curTree(),A.main)[+ds.si];A.sub=(A.sub===s?'':s);renderChips();return}
-  if(ds.natid){var tr0=byId(S.data.Transactions,ds.natid),nx=NATS[(NATS.indexOf(nat(tr0))+1)%3];done(api({action:'set',table:'Transactions',id:ds.natid,fields:{nature:nx}}),'الطبيعة: '+natL(nx));return}
-  if(ds.id){if(confirm('تحذف؟'))done(api({action:'delete',table:'Transactions',id:ds.id}))}
-  else if(ds.delt){if(confirm('تحذف التحويل؟'))done(api({action:'delete',table:'Transfers',id:ds.delt}))}
-  else if(ds.delr){if(confirm('تحذف العملية الثابتة؟'))done(api({action:'delete',table:'Recurring',id:ds.delr}))}
+  if(ds.natid){var tr0=byId(S.data.Transactions,ds.natid),nx=NATS[(NATS.indexOf(nat(tr0))+1)%3];done(api({action:'set',table:'Transactions',id:ds.natid,fields:{nature:nx}}),'الطبيعة: '+nx);return}
+  if(ds.id){if(confirm('تنقل العملية لسلة المهملات؟\nتقدر ترجعها خلال 30 يوم من المزيد > سلة المهملات.'))done(api({action:'trash',table:'Transactions',id:ds.id}),'اتنقلت للسلة')}
+  else if(ds.delt){if(confirm('تنقل التحويل لسلة المهملات؟\nتقدر ترجعه خلال 30 يوم.'))done(api({action:'trash',table:'Transfers',id:ds.delt}),'اتنقل للسلة')}
+  else if(ds.delr){if(confirm('تنقل العملية الثابتة لسلة المهملات؟\nتقدر ترجعها خلال 30 يوم.'))done(api({action:'trash',table:'Recurring',id:ds.delr}),'اتنقلت للسلة')}
+  else if(ds.trr){done(api({action:'restore',table:'Trash',id:ds.trr}),'اترجعت ✓')}
+  else if(ds.trd){if(confirm('تحذف نهائي؟ مش هتقدر ترجعها.'))done(api({action:'delete',table:'Trash',id:ds.trd}),'اتحذفت نهائي')}
+  else if(ds.trall){var n=(S.data.Trash||[]).length;if(n&&confirm('تفضي السلة وتحذف '+n+' عنصر نهائي؟ مش هتقدر ترجعهم.'))done((S.data.Trash||[]).reduce(function(pr,x){return pr.then(function(){return api({action:'delete',table:'Trash',id:x.id})})},Promise.resolve()),'السلة اتفضت')}
   else if(ds.setb){
     var w1=byId(S.data.Wallets,ds.setb),cur=balances()[w1.id],
         raw=prompt('الرصيد الحالي الفعلي للمحفظة "'+w1.name+'"',String(Math.round(cur*100)/100));
@@ -1009,6 +1027,7 @@ $('saveCatsBulk').onclick=function(){
   S.tExp=parseCats($('catsExp').value);S.tInc=parseCats($('catsInc').value);persistCats()};
 $('reload').onclick=load;
 $('themeBtn').onclick=function(){localStorage.setItem('theme',effTheme()==='dark'?'light':'dark');applyTheme()};
+ICONS.trash='<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6"/><path d="M14 11v6"/>';
 document.querySelectorAll('i[data-ic]').forEach(function(el){var s=document.createElement('span');s.innerHTML=ic(el.getAttribute('data-ic'),el.getAttribute('data-cls')||'');el.replaceWith(s.firstChild)});
 
 // ===== المفضلين: أي شخص اتسجل في أي عملية بيتحفظ لوحده =====
@@ -1046,6 +1065,54 @@ ICONS.list='<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="
 document.querySelectorAll('h3').forEach(function(e){var k=e.textContent.trim();if(H3[k])e.insertAdjacentHTML('afterbegin',ic(H3[k]))});
 var KI={expense:'down',income:'up',debt:'users'};
 document.querySelectorAll('#kindSeg button').forEach(function(b){b.insertAdjacentHTML('afterbegin',ic(KI[b.dataset.kind],'sm'))});
+// ===== تعديل عملية: اضغط على العملية =====
+var EDIT=null;
+function endEdit(){
+  EDIT=null;
+  $('save').textContent='حفظ';$('editCancel').classList.add('hide');
+  $('title').textContent=TITLES.add;
+  $('amount').value='';$('note').value='';$('person').value='';$('phone').value='';$('file').value='';
+  $('date').value=today();$('time').value=nowTime();
+  A.nat='عادي';document.querySelectorAll('#natChips .chip').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-nat')==='عادي')});
+  A.main='';A.sub='';$('catSearch').value='';renderChips();
+}
+function startEdit(id){
+  var r=byId(S.data.Transactions,id);if(!r)return;
+  go('add');
+  var debt=isDebt(r.type);
+  setKind(debt?'debt':r.type);
+  if(debt){A.dt=r.type;document.querySelectorAll('#debtChips .chip').forEach(function(b){b.classList.toggle('on',b.dataset.dt===r.type)})}
+  else{A.main=r.category||'';A.sub=r.subcategory||''}
+  $('amount').value=r.amount;
+  $('wallet').value=r.wallet||'';
+  $('date').value=r.date;$('time').value=r.time||'00:00';
+  $('note').value=r.note||'';$('person').value=r.person||'';$('phone').value=r.phone||'';
+  A.nat=r.type==='expense'?nat(r):'عادي';
+  document.querySelectorAll('#natChips .chip').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-nat')===A.nat)});
+  renderChips();renderWChips();
+  EDIT={id:id,wallet:r.wallet};
+  $('save').textContent='حفظ التعديل';$('editCancel').classList.remove('hide');
+  $('title').textContent='تعديل عملية';
+}
+$('editCancel').onclick=function(){endEdit();go('list')};
+document.addEventListener('click',function(e){
+  var t=e.target;if(!t.closest||t.closest('button,a,input,select'))return;
+  var row=t.closest('.row[data-txid]');if(!row)return;
+  startEdit(row.getAttribute('data-txid'));
+});
+// ===== سلة المهملات =====
+var TRK={Transactions:'عملية',Transfers:'تحويل',Recurring:'عملية ثابتة'};
+function renderTrash(){
+  var el=$('trashList');if(!el)return;
+  var L=(S.data.Trash||[]).slice().sort(function(a,b){return String(b.deletedAt).localeCompare(String(a.deletedAt))});
+  $('trashEmpty').classList.toggle('hide',!L.length);
+  el.innerHTML=L.length?L.map(function(x){
+    var d={};try{d=JSON.parse(x.data)}catch(e){}
+    var t=x.table==='Transactions'?(isDebt(d.type)?TYPES[d.type]+' - '+(d.person||''):(d.category||TYPES[d.type]||'')):x.table==='Transfers'?(wname(d.from)+' ← '+wname(d.to)):(d.name||'');
+    var sub=[TRK[x.table],d.date||'',x.table==='Transactions'?wname(d.wallet):'',d.note||d.reason||'','اتحذفت '+String(x.deletedAt).slice(0,16)].filter(Boolean).join(' | ');
+    return '<div class="row"><div class="mid"><b>'+esc(t)+'</b><small>'+esc(sub)+'</small></div><div class="amt">'+num(d.amount||0)+'</div><button class="sm" data-trr="'+esc(x.id)+'">استرجاع</button><button class="sm del" data-trd="'+esc(x.id)+'">حذف نهائي</button></div>'}).join(''):'<div class="empty">السلة فاضية</div>';
+}
+var _r0=render;render=function(){_r0();renderTrash()};
 applyTheme();
 setKind('expense');
 go('home');if(S.url&&S.token)load();
