@@ -70,7 +70,7 @@ button.natb{font-size:12px;padding:4px 8px}
 .chip small{opacity:.7;font-size:11px;margin-inline-start:4px}
 .curline{margin-top:6px;color:var(--muted);font-size:13px}.curline b{color:var(--text)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.row.tap{cursor:pointer}.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row.tap{cursor:pointer}.pk{position:fixed;inset:0;z-index:60;background:var(--bg);overflow:auto;padding:14px 14px 40px}.pkh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:17px}.pk #pkSearch{margin-bottom:12px}.pk .chips{max-height:none;overflow:visible}.chip.more{background:transparent;border:1.5px dashed var(--brand2);color:var(--brand)}.pkrow{display:flex;align-items:center;gap:8px;width:100%;text-align:start;margin:0 0 8px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--text);font-weight:500}.pkrow.on{border-color:var(--brand2);background:var(--chip)}.pkrow small{color:var(--muted);margin-inline-start:auto}.row .mid small{white-space:pre-line}.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 #wallets .row{flex-wrap:wrap}#wallets .row .mid{flex:1 1 55%;min-width:0}#wallets .row .mid b{white-space:normal}
 .ic{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
@@ -171,7 +171,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     <div id="catBox">
       <label>التصنيف</label>
       <div class="sel hide" id="catSel"><span id="catSelTxt"></span><button class="sec" id="catClear" type="button">مسح</button></div>
-      <input id="catSearch" placeholder="ابحث عن تصنيف أو فرعي" autocomplete="off">
+      <input id="catSearch" class="hide" placeholder="ابحث عن تصنيف أو فرعي" autocomplete="off">
       <div id="fqWrap" class="hide"><div class="sub-h">الأكثر استخدامًا</div><div class="chips" id="fqChips"></div></div>
       <div id="resWrap" class="hide"><div class="sub-h">نتائج البحث</div><div class="chips" id="resChips" style="max-height:260px"></div></div>
       <div id="browse"><div class="sub-h">كل التصنيفات</div><div class="chips" id="mainChips"></div></div>
@@ -179,7 +179,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     </div>
     <label>المحفظة</label>
     <select id="wallet" class="hide"></select>
-    <input id="wSearch" placeholder="ابحث عن محفظة" autocomplete="off">
+    <input id="wSearch" class="hide" placeholder="ابحث عن محفظة" autocomplete="off">
     <div class="chips" id="wChips" style="max-height:200px"></div>
     <div class="two">
       <div><label>التاريخ</label><input id="date" type="date"></div>
@@ -196,7 +196,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
       <button class="sec" id="pick" type="button">اختار من جهات الاتصال</button>
     </div>
     <label>ملاحظة</label>
-    <input id="note" placeholder="اختياري">
+    <textarea id="note" rows="6" placeholder="اكتب ملاحظتك هنا (اختياري)" style="min-height:140px;resize:vertical;line-height:1.6"></textarea>
     <label>مرفق (صورة فاتورة أو PDF)</label>
     <input id="file" type="file" accept="image/*,application/pdf">
     <button id="save">حفظ</button>
@@ -264,6 +264,9 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     <button data-go="set"><i data-ic="sliders"></i><span>الإعدادات</span><i data-ic="chev" data-cls="chv"></i></button>
   </div>
 </section>
+
+<div id="picker" class="pk hide"><div class="pkh"><b id="pkTitle"></b><button type="button" class="sm sec" id="pkClose">إغلاق</button></div>
+  <input id="pkSearch" placeholder="ابحث" autocomplete="off"><div id="pkList"></div></div>
 
 <section class="page" id="p-trash"><div class="card"><h3>سلة المهملات</h3>
   <div class="muted" style="margin-bottom:8px">اللي بتحذفه بيفضل هنا 30 يوم وبعدها بيتمسح لوحده. تقدر ترجعه في أي وقت قبل كده.</div>
@@ -729,7 +732,8 @@ function renderWChips(){
   var q=($('wSearch').value||'').trim().toLowerCase(),cur=$('wallet').value;
   var ws=S.data.Wallets.slice().sort(function(a,b){return (cnt[b.id]||0)-(cnt[a.id]||0)}).filter(function(w){return !q||String(w.name).toLowerCase().indexOf(q)>=0});
   curUi();
-  $('wChips').innerHTML=ws.map(function(w){return '<button type="button" class="chip'+(w.id===cur?' on':'')+'" data-w="'+esc(w.id)+'">'+esc(w.name)+' <small>'+cc_(w)+'</small></button>'}).join('')||'<span class="muted">مفيش محفظة بالاسم ده</span>';
+  var top=ws.slice(0,5);if(cur&&!top.some(function(w){return w.id===cur})){var cw=byId(S.data.Wallets,cur);if(cw)top.unshift(cw)}
+  $('wChips').innerHTML=top.map(function(w){return '<button type="button" class="chip'+(w.id===cur?' on':'')+'" data-w="'+esc(w.id)+'">'+esc(w.name)+' <small>'+cc_(w)+'</small></button>'}).join('')+(S.data.Wallets.length>top.length?'<button type="button" class="chip more" data-pk="wal">'+ic('grid','sm')+' كل المحافظ</button>':'');
 }
 $('wChips').onclick=function(e){var b=e.target.closest('[data-w]');if(!b)return;$('wallet').value=b.getAttribute('data-w');renderWChips();curUi()};
 $('wSearch').oninput=renderWChips;
@@ -755,29 +759,23 @@ function freqList(){
   }
   var t=top(true);return t.length<4?top(false):t;
 }
+function subUse(main){var c={};S.data.Transactions.forEach(function(r){if(r.category===main&&r.subcategory)c[r.subcategory]=(c[r.subcategory]||0)+1});return c}
 function renderChips(){
-  var tree=curTree(),q=nq($('catSearch').value);
+  var tree=curTree();
   var sel=A.main?catLabel(A.main,A.sub):'';
   $('catSel').classList.toggle('hide',!sel);$('catSelTxt').textContent=sel?'المختار: '+sel:'';
-  if(q){
-    var res=[];
-    tree.forEach(function(c){
-      if(nq(c.name).indexOf(q)>=0)res.push({main:c.name,sub:''});
-      c.subs.forEach(function(s){if(nq(s).indexOf(q)>=0||nq(c.name+' '+s).indexOf(q)>=0)res.push({main:c.name,sub:s})});
-    });
-    A.res=res.slice(0,40);
-    $('resWrap').classList.remove('hide');$('fqWrap').classList.add('hide');$('browse').classList.add('hide');$('subWrap').classList.add('hide');
-    $('resChips').innerHTML=A.res.length?A.res.map(function(r,i){return '<button class="chip" data-rs="'+i+'">'+esc(catLabel(r.main,r.sub))+'</button>'}).join(''):'<span class="empty">مفيش نتيجة</span>';
-    return;
-  }
-  $('resWrap').classList.add('hide');$('browse').classList.remove('hide');
-  A.freq=freqList();
-  $('fqWrap').classList.toggle('hide',!A.freq.length);
-  $('fqChips').innerHTML=A.freq.map(function(r,i){return '<button class="chip fq'+(A.main===r.main&&A.sub===r.sub?' on':'')+'" data-fq="'+i+'">'+esc(catLabel(r.main,r.sub))+'</button>'}).join('');
-  $('mainChips').innerHTML=tree.length?tree.map(function(c,i){return '<button class="chip'+(A.main===c.name?' on':'')+'" data-mi="'+i+'">'+ic(catIc(c.name))+esc(c.name)+'</button>'}).join(''):'<span class="empty">ضيف تصنيفات من الإعدادات</span>';
+  $('resWrap').classList.add('hide');$('browse').classList.add('hide');
+  A.freq=freqList().filter(function(r){return tree.some(function(c){return c.name===r.main})}).slice(0,5);
+  if(!A.freq.length)A.freq=tree.slice(0,5).map(function(c){return {main:c.name,sub:''}});
+  $('fqWrap').classList.toggle('hide',!tree.length);
+  $('fqChips').innerHTML=A.freq.map(function(r,i){return '<button class="chip fq'+(A.main===r.main&&A.sub===r.sub?' on':'')+'" data-fq="'+i+'">'+esc(catLabel(r.main,r.sub))+'</button>'}).join('')+(tree.length?'<button type="button" class="chip more" data-pk="cat">'+ic('grid','sm')+' كل التصنيفات</button>':'');
   var subs=subsOf(tree,A.main);
   $('subWrap').classList.toggle('hide',!subs.length);
-  $('subChips').innerHTML=subs.map(function(s,i){return '<button class="chip'+(A.sub===s?' on':'')+'" data-si="'+i+'">'+esc(s)+'</button>'}).join('');
+  if(subs.length){
+    var u=subUse(A.main),ss=subs.slice().sort(function(a,b){return (u[b]||0)-(u[a]||0)}),top=ss.slice(0,5);
+    if(A.sub&&top.indexOf(A.sub)<0)top.unshift(A.sub);
+    $('subChips').innerHTML=top.map(function(x){return '<button class="chip'+(A.sub===x?' on':'')+'" data-sn="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+(subs.length>5?'<button type="button" class="chip more" data-pk="sub">'+ic('grid','sm')+' كل الفرعية</button>':'');
+  }
 }
 function setKind(k){
   A.kind=k;A.main='';A.sub='';$('catSearch').value='';
@@ -881,6 +879,7 @@ function cmAction(ds){
 }
 function go(p){
   if(typeof EDIT!=='undefined'&&EDIT)endEdit();
+  if($('picker'))$('picker').classList.add('hide');
   document.querySelectorAll('.page').forEach(function(s){s.classList.toggle('on',s.id==='p-'+p)});
   var navKey=SUB_OF_MORE[p]?'more':p;
   document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.nav===navKey)});
@@ -1100,6 +1099,41 @@ document.addEventListener('click',function(e){
   var row=t.closest('.row[data-txid]');if(!row)return;
   startEdit(row.getAttribute('data-txid'));
 });
+// ===== اختيار من قايمة كاملة (تصنيف / فرعي / محفظة) =====
+var PK={kind:'',items:[]};
+function openPicker(k){
+  PK.kind=k;$('pkSearch').value='';
+  $('pkTitle').textContent=k==='cat'?'كل التصنيفات':k==='sub'?'التصنيفات الفرعية':'كل المحافظ';
+  $('picker').classList.remove('hide');renderPicker();$('pkSearch').focus&&0;
+}
+function closePicker(){$('picker').classList.add('hide')}
+function renderPicker(){
+  var q=nq($('pkSearch').value),items=[],tree=curTree();
+  if(PK.kind==='cat'){
+    if(q){tree.forEach(function(c){
+      if(nq(c.name).indexOf(q)>=0)items.push({t:c.name,on:A.main===c.name&&!A.sub,m:c.name,s:''});
+      c.subs.forEach(function(x){if(nq(x).indexOf(q)>=0||nq(c.name+' '+x).indexOf(q)>=0)items.push({t:catLabel(c.name,x),on:A.main===c.name&&A.sub===x,m:c.name,s:x})})})}
+    else tree.forEach(function(c){items.push({t:c.name,ic:catIc(c.name),on:A.main===c.name,m:c.name,s:''})});
+  }else if(PK.kind==='sub'){
+    subsOf(tree,A.main).forEach(function(x){if(!q||nq(x).indexOf(q)>=0)items.push({t:x,on:A.sub===x,m:A.main,s:x})});
+  }else{
+    var cnt={};S.data.Transactions.forEach(function(t){cnt[t.wallet]=(cnt[t.wallet]||0)+1});
+    S.data.Wallets.slice().sort(function(a,b){return (cnt[b.id]||0)-(cnt[a.id]||0)}).forEach(function(w){if(!q||nq(w.name).indexOf(q)>=0)items.push({t:w.name,sm:cc_(w),on:$('wallet').value===w.id,w:w.id})});
+  }
+  PK.items=items;
+  $('pkList').innerHTML=items.length?items.map(function(it,i){return '<button type="button" class="pkrow'+(it.on?' on':'')+'" data-pki="'+i+'">'+(it.ic?ic(it.ic):'')+esc(it.t)+(it.sm?'<small>'+esc(it.sm)+'</small>':'')+'</button>'}).join(''):'<div class="empty">مفيش نتيجة</div>';
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('[data-pk],[data-pki],[data-sn],#pkClose'):null;if(!t)return;
+  if(t.id==='pkClose'){closePicker();return}
+  if(t.hasAttribute('data-pk')){openPicker(t.getAttribute('data-pk'));return}
+  if(t.hasAttribute('data-sn')){var v=t.getAttribute('data-sn');A.sub=(A.sub===v?'':v);renderChips();return}
+  var it=PK.items[+t.getAttribute('data-pki')];if(!it)return;
+  if(PK.kind==='wal'){$('wallet').value=it.w;renderWChips()}
+  else{A.main=it.m;A.sub=it.s;renderChips()}
+  closePicker();
+});
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='pkSearch')renderPicker()});
 // ===== سلة المهملات =====
 var TRK={Transactions:'عملية',Transfers:'تحويل',Recurring:'عملية ثابتة'};
 function renderTrash(){
