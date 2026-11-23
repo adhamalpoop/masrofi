@@ -106,6 +106,8 @@ details.card summary:before{content:"＋ ";color:var(--brand2)}
 .sel span{flex:1}.sel button{margin:0;width:auto;padding:4px 10px;font-size:13px}
 .chip.fq{background:#e3f4ef;color:#0b5d55}
 .sub-h{font-size:12px;color:var(--muted);margin:8px 0 4px}
+.fav{display:flex;align-items:center;gap:10px;padding:12px;margin:8px 0;border-radius:14px;background:var(--card);border:1px solid var(--line);border-inline-start:5px solid var(--line)}.fav.pos{border-inline-start-color:var(--in)}.fav.neg{border-inline-start-color:var(--out)}.fav.zero{border-inline-start-color:#9aa5a1}.fav .mid{flex:1;min-width:0}.fav .mid b{display:block}.fav .mid small{display:block;color:var(--muted)}.fav .bd{display:inline-block;margin:4px 4px 0 0;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700}.fav .bd svg.i{width:14px;height:14px;vertical-align:-2px;margin-inline-end:3px}.bd.pos{background:#def5e8;color:var(--in)}.bd.neg{background:#fde8e6;color:var(--out)}.bd.zero{background:var(--chip);color:var(--muted)}.ic.fa{background:#fff3cf;color:#b27a00}.chip.fv{border:1px solid var(--line)}.chip.fv i.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px}.dot.pos{background:var(--in)}.dot.neg{background:var(--out)}.dot.zero{background:#9aa5a1}
+:root[data-theme=dark] .bd.pos{background:#16372a}:root[data-theme=dark] .bd.neg{background:#40201f}:root[data-theme=dark] .ic.fa{background:#3d3217;color:#f0c562}
 .empty{color:var(--muted);text-align:center;padding:18px}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));display:flex;justify-content:center}
 nav .in{display:flex;width:100%;max-width:760px;align-items:flex-end}
@@ -186,6 +188,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
     <div id="natBox"><label>طبيعة المعاملة</label>
       <div class="chips" id="natChips"><button type="button" class="chip on" data-nat="عادي"><i data-ic="bag"></i>عادي</button><button type="button" class="chip" data-nat="أساسي"><i data-ic="home"></i>أساسي</button><button type="button" class="chip" data-nat="ترفيهي"><i data-ic="smile"></i>ترفيهي</button></div></div>
     <div id="personBox">
+      <div id="favBox" class="hide"><label>المفضلين (اضغط للاختيار)</label><div class="chips" id="favChips"></div></div>
       <label id="personLbl">الشخص (اختياري)</label>
       <input id="person" placeholder="الاسم" list="personList" autocomplete="off">
       <datalist id="personList"></datalist>
@@ -253,11 +256,16 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
   <div class="menu">
     <button data-go="wal"><i data-ic="wallet"></i><span>المحافظ والتحويلات</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="rec"><i data-ic="repeat"></i><span>العمليات الثابتة (أقساط وغيرها)</span><i data-ic="chev" data-cls="chv"></i></button>
+    <button data-go="fav"><i data-ic="star"></i><span>المفضلين</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="debt"><i data-ic="users"></i><span>الديون</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="cats"><i data-ic="grid"></i><span>إدارة التصنيفات</span><i data-ic="chev" data-cls="chv"></i></button>
     <button data-go="set"><i data-ic="sliders"></i><span>الإعدادات</span><i data-ic="chev" data-cls="chv"></i></button>
   </div>
 </section>
+
+<section class="page" id="p-fav"><div class="card"><h3>المفضلين</h3>
+  <input id="favSearch" placeholder="ابحث عن شخص" autocomplete="off">
+  <div id="favList"></div></div></section>
 
 <section class="page" id="p-debt"><div class="card" id="debts"></div>
   <details class="card"><summary>إضافة دين قديم لشخص</summary>
@@ -380,6 +388,9 @@ card:'<path d="M3 6h18v12H3z"/><path d="M3 10h18"/><path d="M7 15h3"/>',
 bank:'<path d="M3 10l9-6 9 6"/><path d="M5 10v8"/><path d="M9 10v8"/><path d="M15 10v8"/><path d="M19 10v8"/><path d="M3 21h18"/>',
 gem:'<path d="M12 3l8 5-8 13L4 8l8-5z"/><path d="M4 8h16"/>',
 cash:'<path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 12h.01"/><path d="M17.5 12h.01"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+star:'<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8L12 3.5z"/>',
+check:'<path d="M4 12.5l5 5L20 6.5"/>',
 users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M17 4.5a3 3 0 0 1 0 6"/><path d="M18.5 14.7c2 .6 3 2.2 3 4.3"/>',
 user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>',
 repeat:'<path d="M4 10V8a3 3 0 0 1 3-3h11l-3-3"/><path d="M20 14v2a3 3 0 0 1-3 3H6l3 3"/>',
@@ -405,8 +416,8 @@ var TYPES={expense:'مصروف',income:'دخل',lent:'سلفت',borrowed:'است
 var PLUS={income:1,borrowed:1,repay_in:1};
 var DEF_EXP='أكل وشرب\n- مطاعم\n- بقالة\nمواصلات\n- أجرة\n- بنزين\nفواتير\nأقساط\nمشتريات\nصحة\nترفيه\nأخرى';
 var DEF_INC='مرتب\nعمل حر\nهدايا\nأخرى';
-var TITLES={cats:'إدارة التصنيفات',home:'مصروفي',add:'إضافة عملية',list:'المعاملات',report:'التقارير',more:'المزيد',debt:'الديون',wal:'المحافظ والتحويلات',rec:'العمليات الثابتة',set:'الإعدادات'};
-var SUB_OF_MORE={debt:1,wal:1,rec:1,set:1,cats:1};
+var TITLES={cats:'إدارة التصنيفات',home:'مصروفي',add:'إضافة عملية',list:'المعاملات',report:'التقارير',more:'المزيد',debt:'الديون',fav:'المفضلين',wal:'المحافظ والتحويلات',rec:'العمليات الثابتة',set:'الإعدادات'};
+var SUB_OF_MORE={fav:1,debt:1,wal:1,rec:1,set:1,cats:1};
 var EMPTY={Transactions:[],Wallets:[],Transfers:[],Recurring:[],Categories:[],Settings:[]};
 var $=function(i){return document.getElementById(i)};
 function parseCats(text){var t=[];String(text||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;if(l.charAt(0)==='-'){var s=l.replace(/^-+\s*/,'');if(s&&t.length)t[t.length-1].subs.push(s)}else t.push({name:l,subs:[]})});return t}
@@ -789,7 +800,7 @@ function render(){
 
   renderList(rows);
 
-  renderNatRep();renderWalCur();renderMainBal();renderPersonReport();
+  renderNatRep();renderWalCur();renderMainBal();renderPersonReport();renderFav();
   $('personList').innerHTML=personList().slice(0,200).map(function(p){return '<option value="'+esc(p)+'">'}).join('');
   renderNoteSearch();
   var rm=$('month').value||m,st=monthStats(rm,RC);
@@ -999,7 +1010,38 @@ $('saveCatsBulk').onclick=function(){
 $('reload').onclick=load;
 $('themeBtn').onclick=function(){localStorage.setItem('theme',effTheme()==='dark'?'light':'dark');applyTheme()};
 document.querySelectorAll('i[data-ic]').forEach(function(el){var s=document.createElement('span');s.innerHTML=ic(el.getAttribute('data-ic'),el.getAttribute('data-cls')||'');el.replaceWith(s.firstChild)});
-var H3={'المحافظ':'wallet','آخر العمليات':'list','إجمالي المحافظ حسب العملة':'globe','تقرير شخص':'user','بحث في الملاحظات':'search','حسب طبيعة المعاملة':'tag','المصروف حسب التصنيف':'down','الدخل حسب التصنيف':'up','المحافظ والأرصدة':'wallet','سجل التحويلات':'transfer','العمليات الثابتة':'repeat','مستحق الشهر ده':'calendar'};
+
+// ===== المفضلين: أي شخص اتسجل في أي عملية بيتحفظ لوحده =====
+var FAV=[];
+function favData(){
+  var m={};
+  S.data.Transactions.forEach(function(r){var n=String(r.person||'').trim();if(!n)return;
+    var f=m[n]=m[n]||{name:n,phone:'',last:'',n:0,debt:{}};
+    f.n++;var k=String(r.date||'')+' '+String(r.time||'');if(k>=f.last){f.last=k;if(r.phone)f.phone=r.phone}else if(!f.phone&&r.phone)f.phone=r.phone;
+    if(isDebt(r.type)){var c=wcur(r.wallet),sg=(r.type==='lent'||r.type==='repay_out')?1:-1;f.debt[c]=(f.debt[c]||0)+sg*r.amount}});
+  var a=Object.keys(m).map(function(k){var f=m[k];f.cur=Object.keys(f.debt).filter(function(c){return Math.abs(f.debt[c])>=0.005});
+    f.st=!f.cur.length?'zero':(f.cur.every(function(c){return f.debt[c]>0})?'pos':(f.cur.every(function(c){return f.debt[c]<0})?'neg':'mix'));return f});
+  return a.sort(function(x,y){return y.last.localeCompare(x.last)||y.n-x.n});
+}
+function favBadges(f){
+  if(!f.cur.length)return '<span class="bd zero">'+ic('check')+'متصفي</span>';
+  return f.cur.map(function(c){var v=f.debt[c];return v>0?'<span class="bd pos">'+ic('up')+'مديون لك '+num(v)+' '+c+'</span>':'<span class="bd neg">'+ic('down')+'انت مديون له '+num(-v)+' '+c+'</span>'}).join('');
+}
+function renderFav(){
+  FAV=favData();
+  var box=$('favBox');if(box){box.classList.toggle('hide',!FAV.length);
+    $('favChips').innerHTML=FAV.slice(0,12).map(function(f,i){var st=f.st==='mix'?'zero':f.st;return '<button type="button" class="chip fv" data-fi="'+i+'"><i class="dot '+st+'"></i>'+esc(f.name)+'</button>'}).join('')}
+  var q=(($('favSearch')||{}).value||'').trim().toLowerCase();
+  var L=FAV.filter(function(f){return !q||(f.name+' '+f.phone).toLowerCase().indexOf(q)>=0});
+  if($('favList'))$('favList').innerHTML=L.length?L.map(function(f){var i=FAV.indexOf(f);
+    return '<div class="fav '+(f.st==='mix'?'zero':f.st)+'"><div class="ic fa">'+ic('user')+'</div><div class="mid"><b>'+esc(f.name)+'</b><small>'+esc(f.phone)+(f.phone?' | ':'')+f.n+' عملية</small><div>'+favBadges(f)+'</div></div><button class="sm sec" data-fa="'+i+'">'+ic('plus','sm')+' عملية</button></div>'}).join(''):'<div class="empty">'+(FAV.length?'مفيش نتيجة':'لسه مفيش أشخاص. أي شخص تختاره في عملية بيتحفظ هنا لوحده')+'</div>';
+}
+function favPick(i){var f=FAV[i];if(!f)return;$('person').value=f.name;$('phone').value=f.phone||''}
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-fi],[data-fa]');if(!t)return;
+  if(t.hasAttribute('data-fi')){favPick(+t.getAttribute('data-fi'));return}
+  var i=+t.getAttribute('data-fa');go('add');favPick(i)});
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='favSearch')renderFav()});
+var H3={'المفضلين':'star','المحافظ':'wallet','آخر العمليات':'list','إجمالي المحافظ حسب العملة':'globe','تقرير شخص':'user','بحث في الملاحظات':'search','حسب طبيعة المعاملة':'tag','المصروف حسب التصنيف':'down','الدخل حسب التصنيف':'up','المحافظ والأرصدة':'wallet','سجل التحويلات':'transfer','العمليات الثابتة':'repeat','مستحق الشهر ده':'calendar'};
 ICONS.list='<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>';
 document.querySelectorAll('h3').forEach(function(e){var k=e.textContent.trim();if(H3[k])e.insertAdjacentHTML('afterbegin',ic(H3[k]))});
 var KI={expense:'down',income:'up',debt:'users'};
