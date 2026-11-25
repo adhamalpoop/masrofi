@@ -279,6 +279,16 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
   <label>الرصيد الافتتاحي</label><input id="wnOpen" type="number" inputmode="decimal" value="0">
   <button type="button" id="wnSave">إضافة المحفظة</button></div></div>
 
+<div id="tedit" class="pk hide" style="z-index:70"><div class="pkh"><b>تفاصيل التحويل</b><button type="button" class="sm sec" id="teClose">رجوع</button></div>
+  <div class="card"><label style="margin-top:0">من</label><select id="teFrom"></select>
+  <label>إلى</label><select id="teTo"></select>
+  <label>المبلغ (يخرج من المحفظة الأولى) <b id="teCurA">EGP</b></label><input id="teAmt" type="number" inputmode="decimal">
+  <div id="teAmt2Wrap" class="hide"><label>المبلغ اللي يوصل (بعملة المحفظة التانية) <b id="teCurB">EGP</b></label><input id="teAmt2" type="number" inputmode="decimal"></div>
+  <div class="two"><div><label>التاريخ</label><input id="teDate" type="date"></div><div><label>الوقت</label><input id="teTime" type="time"></div></div>
+  <label>السبب</label><input id="teReason">
+  <button type="button" id="teSave">حفظ التعديل</button>
+  <button type="button" class="del" id="teDel" style="margin-top:8px;width:100%">حذف التحويل (للسلة)</button></div></div>
+
 <div id="calc" class="pk hide"><div class="pkh"><b>حاسبة</b><button type="button" class="sm sec" id="calcClose">رجوع</button></div>
   <div class="muted" style="margin-bottom:10px">اكتب كل رقم في سطر (ينفع تكتب عملية زي 12*3). الإجمالي بيتحسب لوحده.</div>
   <div id="calcRows"></div>
@@ -622,7 +632,7 @@ function totHtml(g){
   return cs.map(function(c){var o=g[c];return '<span class="gt"><b class="in-c">+'+num(o.inc)+'</b> <b class="out-c">-'+num(o.exp)+'</b>'+(cs.length>1||c!=='EGP'?' <small>'+c+'</small>':'')+'</span>'}).join('')||'<span class="gt"><small>لا دخل ولا مصروف</small></span>';
 }
 function trRow(t){
-  return '<div class="row"><div class="ic tr">'+ic('transfer')+'</div><div class="mid"><b>'+esc(wname(t.wallet))+' ← '+esc(wname(t.to))+'</b><small>'+esc(t.date)+' '+esc(t.time)+(t.note?' | '+esc(t.note):'')+'</small></div><div class="amt">'+num(t.amount)+' <small>'+wcur(t.wallet)+'</small>'+(wcur(t.wallet)!==wcur(t.to)&&t.toAmount>0?'<br><small>← '+num(t.toAmount)+' '+wcur(t.to)+'</small>':'')+'</div></div>';
+  return '<div class="row tap" data-trid="'+esc(t.id)+'"><div class="ic tr">'+ic('transfer')+'</div><div class="mid"><b>'+esc(wname(t.wallet))+' ← '+esc(wname(t.to))+'</b><small>'+esc(t.date)+' '+esc(t.time)+(t.note?' | '+esc(t.note):'')+'</small></div><div class="amt">'+num(t.amount)+' <small>'+wcur(t.wallet)+'</small>'+(wcur(t.wallet)!==wcur(t.to)&&t.toAmount>0?'<br><small>← '+num(t.toAmount)+' '+wcur(t.to)+'</small>':'')+'</div></div>';
 }
 function fillListFilters(){
   var cats={},subs={};
@@ -735,8 +745,10 @@ function fillSelects(){
   renderWChips();renderSelChips();fillMove();
   fillRecCats();
 }
-function renderSelChips(){['tfrom','tto','rwallet'].forEach(function(id){var cur=$(id).value;
-  $('c_'+id).innerHTML=S.data.Wallets.map(function(w){return '<button type="button" class="chip'+(w.id===cur?' on':'')+'" data-sw="'+id+'|'+esc(w.id)+'">'+esc(w.name)+' <small>'+cc_(w)+'</small></button>'}).join('')});curUi()}
+function renderSelChips(){
+  if($('tfrom').value&&$('tfrom').value===$('tto').value){var oth=S.data.Wallets.filter(function(w){return w.id!==$('tfrom').value})[0];if(oth)$('tto').value=oth.id}
+  ['tfrom','tto','rwallet'].forEach(function(id){var cur=$(id).value;
+  $('c_'+id).innerHTML=S.data.Wallets.filter(function(w){return id!=='tto'||w.id!==$('tfrom').value}).map(function(w){return '<button type="button" class="chip'+(w.id===cur?' on':'')+'" data-sw="'+id+'|'+esc(w.id)+'">'+esc(w.name)+' <small>'+cc_(w)+'</small></button>'}).join('')});curUi()}
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-sw]');if(!b)return;var p=b.getAttribute('data-sw').split('|');$(p[0]).value=p[1];renderSelChips()});
 function fillMove(){
   var o=S.data.Wallets.map(function(w){return '<option value="'+esc(w.id)+'">'+esc(w.name)+' ('+cc_(w)+')</option>'}).join('');
@@ -844,7 +856,7 @@ function render(){
     return '<div class="row tapx"'+dka('wal',w.id)+'><div class="mid"><b>'+ic(wIc(w),'sm')+' '+esc(w.name)+'</b><small>'+esc(ptype(w))+' | '+cc_(w)+'</small></div><div class="amt '+(v<0?'out-c':'')+'">'+num(v)+'</div><div style="display:flex;gap:6px;width:100%"><button class="sm sec" data-setb="'+esc(w.id)+'">الرصيد</button><button class="sm sec" data-renw="'+esc(w.id)+'">تعديل</button><button class="sm del" data-delw="'+esc(w.id)+'">حذف</button></div></div>'}).join(''):'<div class="empty">اضف محفظة الأول</div>';
   var tr=S.data.Transfers.slice().sort(bySort);
   $('transfers').innerHTML=tr.length?tr.slice(0,100).map(function(t){
-    return '<div class="row"><div class="ic tr">'+ic('transfer')+'</div><div class="mid"><b>'+esc(wname(t.from))+' ← '+esc(wname(t.to))+'</b><small>'+esc(t.date)+' '+esc(t.time)+' | '+esc(t.reason)+'</small></div><div class="amt">'+num(t.amount)+' <small>'+wcur(t.from)+'</small>'+(wcur(t.from)!==wcur(t.to)&&t.toAmount>0?'<br><small>← '+num(t.toAmount)+' '+wcur(t.to)+'</small>':'')+'</div><button class="sm del" data-delt="'+esc(t.id)+'">حذف</button></div>'}).join(''):'<div class="empty">مفيش تحويلات</div>';
+    return '<div class="row tap" data-trid="'+esc(t.id)+'"><div class="ic tr">'+ic('transfer')+'</div><div class="mid"><b>'+esc(wname(t.from))+' ← '+esc(wname(t.to))+'</b><small>'+esc(t.date)+' '+esc(t.time)+' | '+esc(t.reason)+'</small></div><div class="amt">'+num(t.amount)+' <small>'+wcur(t.from)+'</small>'+(wcur(t.from)!==wcur(t.to)&&t.toAmount>0?'<br><small>← '+num(t.toAmount)+' '+wcur(t.to)+'</small>':'')+'</div><button class="sm del" data-delt="'+esc(t.id)+'">حذف</button></div>'}).join(''):'<div class="empty">مفيش تحويلات</div>';
   $('recs').innerHTML=S.data.Recurring.length?S.data.Recurring.map(function(r){
     return '<div class="row"><div class="mid"><b>'+esc(r.name)+'</b><small>يوم '+r.day+' | '+esc(wname(r.wallet))+' | '+(r.active?'شغال':'موقوف')+'</small></div><div class="amt '+(r.type==='income'?'in-c':'out-c')+'">'+num(r.amount)+'</div><button class="sm sec" data-tog="'+esc(r.id)+'">'+(r.active?'وقف':'شغل')+'</button><button class="sm del" data-delr="'+esc(r.id)+'">حذف</button></div>'}).join(''):'<div class="empty">مفيش عمليات ثابتة</div>';
 
@@ -912,6 +924,7 @@ function go(p,nopush){
   if($('picker'))$('picker').classList.add('hide');
   if($('calc'))$('calc').classList.add('hide');
   if($('wnew'))$('wnew').classList.add('hide');
+  if($('tedit'))$('tedit').classList.add('hide');
   if(!nopush){if(!CUR)history.replaceState({p:p},'');else if(CUR!==p){history.pushState({p:p},'');HD++}}
   CUR=p;
   document.querySelectorAll('.page').forEach(function(s){s.classList.toggle('on',s.id==='p-'+p)});
@@ -1171,12 +1184,12 @@ document.addEventListener('click',function(e){
 // ===== الرجوع: زرار رجوع + حركة الرجوع في الموبايل =====
 function openOv(){if(OV)return;OV=1;history.pushState({ov:1},'');HD++}
 function closeOv(){
-  $('picker').classList.add('hide');$('calc').classList.add('hide');$('wnew').classList.add('hide');
+  $('picker').classList.add('hide');$('calc').classList.add('hide');$('wnew').classList.add('hide');$('tedit').classList.add('hide');
   if(OV){OV=0;history.back()}
 }
 window.addEventListener('popstate',function(e){
   HD=Math.max(0,HD-1);OV=0;
-  $('picker').classList.add('hide');$('calc').classList.add('hide');$('wnew').classList.add('hide');
+  $('picker').classList.add('hide');$('calc').classList.add('hide');$('wnew').classList.add('hide');$('tedit').classList.add('hide');
   var st=e.state;
   if(st&&st.p&&st.p!==CUR)go(st.p,true);
 });
@@ -1363,6 +1376,50 @@ function renderDrill(){
   $('drillHead').innerHTML='<div class="drh">'+esc(DR.title)+'</div><div class="muted">'+all.length+' عملية'+(DR.sub?' | '+esc(DR.sub):'')+'</div><div class="drx">'+totHtml(sumByCur(rows))+'</div>'+DR.extra;
   $('drillList').innerHTML=all.length?all.slice(0,300).map(function(r){return r.type==='transfer'?trRow(r):txRow(r,true)}).join('')+(all.length>300?'<div class="empty">بيظهر أول 300 عملية. استخدم صفحة المعاملات للفلترة</div>':''):'<div class="empty">مفيش عمليات</div>';
 }
+
+// ===== تفاصيل / تعديل / حذف التحويل =====
+var TE=null;
+function teToFill(want){
+  var f=$('teFrom').value;
+  $('teTo').innerHTML=S.data.Wallets.filter(function(w){return w.id!==f}).map(function(w){return '<option value="'+esc(w.id)+'">'+esc(w.name)+' ('+cc_(w)+')</option>'}).join('');
+  var ids=[].map.call($('teTo').options,function(o){return o.value});
+  $('teTo').value=ids.indexOf(want)>=0?want:(ids[0]||'');
+}
+function teCur(){
+  var f=wcur($('teFrom').value),t=wcur($('teTo').value);
+  $('teCurA').textContent=f;$('teCurB').textContent=t;$('teAmt2Wrap').classList.toggle('hide',f===t);
+}
+document.addEventListener('click',function(e){
+  var t=e.target;if(!t.closest||t.closest('button,a,input,select'))return;
+  var row=t.closest('[data-trid]');if(!row)return;
+  var tr=byId(S.data.Transfers,row.getAttribute('data-trid'));if(!tr)return;
+  TE=tr.id;
+  var ws=S.data.Wallets.map(function(w){return '<option value="'+esc(w.id)+'">'+esc(w.name)+' ('+cc_(w)+')</option>'}).join('');
+  $('teFrom').innerHTML=ws;
+  $('teFrom').value=tr.from;teToFill(tr.to);
+  $('teAmt').value=tr.amount;$('teAmt2').value=tr.toAmount>0?tr.toAmount:'';
+  $('teDate').value=String(tr.date).slice(0,10);$('teTime').value=tr.time||'00:00';$('teReason').value=tr.reason||'';
+  teCur();openOv();$('tedit').classList.remove('hide');
+});
+$('teFrom').onchange=function(){teToFill($('teTo').value);teCur()};$('teTo').onchange=teCur;
+$('teClose').onclick=function(){closeOv()};
+$('teSave').onclick=function(){
+  var tr=byId(S.data.Transfers,TE);if(!tr){msg('التحويل مش موجود، حدّث الصفحة');return}
+  var f=$('teFrom').value,t=$('teTo').value,a=parseFloat($('teAmt').value);
+  if(!f||!t||f===t){msg('اختار محفظتين مختلفتين');return}
+  if(!(a>0)){msg('اكتب المبلغ');return}
+  var a2=0;if(wcur(f)!==wcur(t)){a2=parseFloat($('teAmt2').value);if(!(a2>0)){msg('اكتب المبلغ اللي هيوصل بعملة المحفظة التانية');return}}
+  var fields={from:f,to:t,amount:a,toAmount:a2,date:$('teDate').value,time:$('teTime').value,reason:$('teReason').value.trim()};
+  var b=$('teSave');b.disabled=true;b.textContent='جاري الحفظ...';
+  api({action:'set',table:'Transfers',id:TE,fields:fields}).then(function(){
+    for(var k in fields)tr[k]=fields[k];
+    b.disabled=false;b.textContent='حفظ التعديل';closeOv();render();msg('اتعدل ✓');load();
+  }).catch(function(e){b.disabled=false;b.textContent='حفظ التعديل';msg('التعديل ما اتحفظش: '+String(e))});
+};
+$('teDel').onclick=function(){
+  if(!confirm('تنقل التحويل لسلة المهملات؟\nتقدر ترجعه خلال 30 يوم من المزيد > سلة المهملات.'))return;
+  var id=TE;closeOv();done(api({action:'trash',table:'Transfers',id:id}),'اتنقل للسلة');
+};
 // ===== سلة المهملات =====
 var TRK={Transactions:'عملية',Transfers:'تحويل',Recurring:'عملية ثابتة'};
 function renderTrash(){
@@ -1376,7 +1433,7 @@ function renderTrash(){
     return '<div class="row"><div class="mid"><b>'+esc(t)+'</b><small>'+esc(sub)+'</small></div><div class="amt">'+num(d.amount||0)+'</div><button class="sm" data-trr="'+esc(x.id)+'">استرجاع</button><button class="sm del" data-trd="'+esc(x.id)+'">حذف نهائي</button></div>'}).join(''):'<div class="empty">السلة فاضية</div>';
 }
 var _r0=render;render=function(){_r0();renderTrash();renderDrill()};
-var FE_VER='2026-11-25a';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
+var FE_VER='2026-11-25c';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
 applyTheme();
 setKind('expense');
 go('home');if(S.url&&S.token)load();
