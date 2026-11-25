@@ -130,6 +130,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
 .tapx{cursor:pointer}.pkrow.new{border-style:dashed;color:var(--brand);font-weight:700}.drh{font-weight:800;font-size:17px}.drx{margin-top:8px}.hdn{display:none!important}
 html[dir=ltr] .menu button svg.chv,html[dir=ltr] svg.chv{transform:scaleX(-1)}html[dir=ltr] .chk,html[dir=ltr] label{text-align:start}
 .langrow{display:flex;gap:10px}.langrow button{flex:1}.langrow button.on{background:var(--brand);color:#fff}
+.dfg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfg label{margin:6px 0 2px;font-size:13px}#drillFlt summary{font-weight:700;cursor:pointer}#drillFlt.hide{display:none}
 </style>
 </head>
 <body>
@@ -300,7 +301,7 @@ html[dir=ltr] .menu button svg.chv,html[dir=ltr] svg.chv{transform:scaleX(-1)}ht
   <button type="button" id="calcApply">تطبيق على المبلغ</button>
   <button type="button" class="sec" id="calcClear" style="margin-top:8px">مسح الكل</button></div>
 
-<section class="page" id="p-drill"><div class="card" id="drillHead"></div><div class="card" id="drillList"></div></section>
+<section class="page" id="p-drill"><div class="card" id="drillHead"></div><div class="card" id="drillFlt"></div><div class="card" id="drillList"></div></section>
 
 <section class="page" id="p-trash"><div class="card"><h3>سلة المهملات</h3>
   <div class="muted" style="margin-bottom:8px">اللي بتحذفه بيفضل هنا 30 يوم وبعدها بيتمسح لوحده. تقدر ترجعه في أي وقت قبل كده.</div>
@@ -1354,7 +1355,7 @@ document.addEventListener('click',function(e){
 // ===== اضغط على أي رقم أو عنصر يفتح العمليات اللي وراه =====
 var DR=null;
 function mLab(m){var p=String(m).split('-');return AR_M[+p[1]-1]+' '+p[0]}
-function openDrill(o){DR=o;go('drill');$('title').textContent=o.title}
+function openDrill(o){DR=o;DR.f={};DR.built=false;go('drill');$('title').textContent=o.title}
 function drillFrom(d){
   var k=d.dk,a=d.d1||'',b=d.d2||'',c=d.d3||'',x=d.d4||'',y=d.d5||'';
   if(b==='@m')b=today().slice(0,7);
@@ -1391,13 +1392,58 @@ document.addEventListener('click',function(e){
   var inner=e.target.closest('button,a,input,select,summary');if(inner&&inner!==t)return;
   drillFrom(t.dataset);
 });
+
+function drAllRows(){
+  var rows=S.data.Transactions.filter(DR.fn);
+  var trs=DR.tr?S.data.Transfers.filter(DR.tr).map(function(t){return {id:t.id,type:'transfer',date:t.date,time:t.time,amount:t.amount,wallet:t.from,to:t.to,toAmount:t.toAmount,note:t.reason,category:'',subcategory:'',person:''}}):[];
+  return rows.concat(trs).sort(bySort);
+}
+function drBuild(all){
+  var cats={},wals={},pers={};
+  all.forEach(function(r){if(r.type!=='transfer')cats[r.category||'بدون تصنيف']=1;wals[r.wallet]=1;if(r.to)wals[r.to]=1;if(r.person)pers[String(r.person).trim()]=1});
+  function opts(m,lab){return Object.keys(m).sort().map(function(k){return '<option value="'+esc(k)+'">'+esc(lab?lab(k):k)+'</option>'}).join('')}
+  $('drillFlt').innerHTML='<details id="drDet"><summary id="drSum">فلاتر</summary>'+
+   '<label>النوع</label><select id="dfType"><option value="">الكل</option><option value="income">دخل</option><option value="expense">مصروف</option><option value="debt">دين</option><option value="transfer">تحويل</option></select>'+
+   '<label>التصنيف</label><select id="dfCat"><option value="">كل التصنيفات</option>'+opts(cats)+'</select>'+
+   '<label>المحفظة</label><select id="dfWal"><option value="">كل المحافظ</option>'+opts(wals,wname)+'</select>'+
+   '<label>الشخص</label><select id="dfPer"><option value="">الكل</option>'+opts(pers)+'</select>'+
+   '<label>الطبيعة</label><select id="dfNat"><option value="">الكل</option>'+NATS.map(function(n){return '<option value="'+n+'">'+n+'</option>'}).join('')+'</select>'+
+   '<label>المبلغ (من - إلى)</label><div class="dfg"><input id="dfMin" type="number" inputmode="decimal" placeholder="من"><input id="dfMax" type="number" inputmode="decimal" placeholder="إلى"></div>'+
+   '<label>التاريخ</label><div class="dfg"><input id="dfD1" type="date"><input id="dfD2" type="date"></div>'+
+   '<label>بحث</label><input id="dfQ" placeholder="بحث في نص الملاحظة أو الاسم">'+
+   '<button type="button" class="sec" id="dfClear" style="margin-top:10px">مسح الفلاتر</button></details>';
+  DR.built=true;
+}
+function drRead(){
+  var g=function(i){return $(i)?$(i).value:''};
+  DR.f={type:g('dfType'),cat:g('dfCat'),wal:g('dfWal'),per:g('dfPer'),nat:g('dfNat'),min:g('dfMin'),max:g('dfMax'),d1:g('dfD1'),d2:g('dfD2'),q:nq(g('dfQ'))};
+}
+function drMatch(r){
+  var f=DR.f||{};
+  if(f.type){if(f.type==='debt'){if(!isDebt(r.type))return false}else if(r.type!==f.type)return false}
+  if(f.cat&&(r.type==='transfer'||(r.category||'بدون تصنيف')!==f.cat))return false;
+  if(f.wal&&r.wallet!==f.wal&&r.to!==f.wal)return false;
+  if(f.per&&String(r.person||'').trim()!==f.per)return false;
+  if(f.nat&&!(r.type==='expense'&&nat(r)===f.nat))return false;
+  var a=Number(r.amount)||0;
+  if(f.min!==''&&f.min!=null&&a<parseFloat(f.min))return false;
+  if(f.max!==''&&f.max!=null&&a>parseFloat(f.max))return false;
+  if(f.d1&&String(r.date)<f.d1)return false;
+  if(f.d2&&String(r.date)>f.d2)return false;
+  if(f.q&&nq([r.note,r.person,r.category,r.subcategory].join(' '))!==''&&nq([r.note,r.person,r.category,r.subcategory].join(' ')).indexOf(f.q)<0)return false;
+  if(f.q&&nq([r.note,r.person,r.category,r.subcategory].join(' '))==='')return false;
+  return true;
+}
+document.addEventListener('input',function(e){if(e.target.closest&&e.target.closest('#drillFlt')){drRead();renderDrill()}});
+document.addEventListener('change',function(e){if(e.target.closest&&e.target.closest('#drillFlt')){drRead();renderDrill()}});
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='dfClear'){['dfType','dfCat','dfWal','dfPer','dfNat','dfMin','dfMax','dfD1','dfD2','dfQ'].forEach(function(i){$(i).value=''});drRead();renderDrill()}});
 function renderDrill(){
   if(CUR!=='drill'||!DR)return;
   $('title').textContent=DR.title;
-  var rows=S.data.Transactions.filter(DR.fn);
-  var trs=DR.tr?S.data.Transfers.filter(DR.tr).map(function(t){return {id:t.id,type:'transfer',date:t.date,time:t.time,amount:t.amount,wallet:t.from,to:t.to,toAmount:t.toAmount,note:t.reason,category:'',subcategory:'',person:''}}):[];
-  var all=rows.concat(trs).sort(bySort);
-  $('drillHead').innerHTML='<div class="drh">'+esc(DR.title)+'</div><div class="muted">'+all.length+' عملية'+(DR.sub?' | '+esc(DR.sub):'')+'</div><div class="drx">'+totHtml(sumByCur(rows))+'</div>'+DR.extra;
+  var full=drAllRows();if(!DR.built)drBuild(full);
+  var all=full.filter(drMatch),rows=all.filter(function(r){return r.type!=='transfer'});
+  var nf=Object.keys(DR.f||{}).filter(function(k){return DR.f[k]}).length;$('drSum').textContent='فلاتر'+(nf?' ('+nf+')':'');
+  $('drillHead').innerHTML='<div class="drh">'+esc(DR.title)+'</div><div class="muted">'+all.length+(nf?' / '+full.length:'')+' عملية'+(DR.sub?' | '+esc(DR.sub):'')+'</div><div class="drx">'+totHtml(sumByCur(rows))+'</div>'+DR.extra;
   $('drillList').innerHTML=all.length?all.slice(0,300).map(function(r){return r.type==='transfer'?trRow(r):txRow(r,true)}).join('')+(all.length>300?'<div class="empty">بيظهر أول 300 عملية. استخدم صفحة المعاملات للفلترة</div>':''):'<div class="empty">مفيش عمليات</div>';
 }
 
@@ -1457,7 +1503,7 @@ function renderTrash(){
     return '<div class="row"><div class="mid"><b>'+esc(t)+'</b><small>'+esc(sub)+'</small></div><div class="amt">'+num(d.amount||0)+'</div><button class="sm" data-trr="'+esc(x.id)+'">استرجاع</button><button class="sm del" data-trd="'+esc(x.id)+'">حذف نهائي</button></div>'}).join(''):'<div class="empty">السلة فاضية</div>';
 }
 var _r0=render;render=function(){_r0();renderTrash();renderDrill()};
-var FE_VER='2026-11-25d';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
+var FE_VER='2026-11-25e';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
 applyTheme();
 setKind('expense');
 go('home');if(S.url&&S.token)load();
