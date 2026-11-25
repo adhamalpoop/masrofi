@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>مصروفي</title>
+<script>try{if(localStorage.getItem('lang')==='en'){document.documentElement.lang='en';document.documentElement.dir='ltr'}}catch(e){}</script>
 <script>try{var __t=localStorage.getItem('theme');if(__t==='dark'||__t==='light')document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
 <style>
 :root{
@@ -91,7 +92,7 @@ button.natb{font-size:12px;padding:4px 8px}
 .bar i{display:block;height:100%;background:var(--brand2);border-radius:6px}
 .bar.inb i{background:var(--in)}
 .subrow{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;padding:3px 14px 0 0}
-.menu button{display:flex;align-items:center;gap:12px;background:var(--card);color:var(--text);text-align:right;margin:0 0 10px;padding:16px;border-radius:16px;box-shadow:var(--shadow)}
+.menu button{display:flex;align-items:center;gap:12px;background:var(--card);color:var(--text);text-align:start;margin:0 0 10px;padding:16px;border-radius:16px;box-shadow:var(--shadow)}
 .menu button span{flex:1}
 details.card summary{cursor:pointer;font-weight:700;list-style:none}
 details.card summary::-webkit-details-marker{display:none}
@@ -101,7 +102,7 @@ details.card summary:before{content:"＋ ";color:var(--brand2)}
 .cm .head{display:flex;align-items:center;gap:6px}
 .cm .head b{flex:1}
 .cm button.sm{padding:5px 9px}
-.cm .subs{margin:6px 0 0;padding-right:14px;border-right:3px solid var(--chip)}
+.cm .subs{margin:6px 0 0;padding-inline-start:14px;border-inline-start:3px solid var(--chip)}
 .cm .subs .line{display:flex;align-items:center;gap:6px;padding:4px 0}
 .cm .subs .line span{flex:1}
 .sel{display:flex;align-items:center;gap:8px;background:var(--chip);border-radius:12px;padding:8px 12px;margin-bottom:8px;font-weight:700}
@@ -127,6 +128,8 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
   .span2{grid-column:1/-1}
 }
 .tapx{cursor:pointer}.pkrow.new{border-style:dashed;color:var(--brand);font-weight:700}.drh{font-weight:800;font-size:17px}.drx{margin-top:8px}.hdn{display:none!important}
+html[dir=ltr] .menu button svg.chv,html[dir=ltr] svg.chv{transform:scaleX(-1)}html[dir=ltr] .chk,html[dir=ltr] label{text-align:start}
+.langrow{display:flex;gap:10px}.langrow button{flex:1}.langrow button.on{background:var(--brand);color:#fff}
 </style>
 </head>
 <body>
@@ -377,6 +380,7 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
 </section>
 
 <section class="page" id="p-set">
+  <div class="card"><label style="margin-top:0">اللغة / Language</label><div class="langrow"><button type="button" class="sec" id="langAr">العربية</button><button type="button" class="sec" id="langEn">English</button></div></div>
   <div class="card">
     <label style="margin-top:0">رابط الـ API (من Apps Script)</label>
     <input id="url" placeholder="https://script.google.com/macros/s/.../exec">
@@ -410,6 +414,26 @@ nav button.fab svg{stroke:#fff;width:28px;height:28px}
   <button data-go="more" data-nav="more"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>المزيد</button>
 </div></nav>
 
+<script>
+var EN=false;try{EN=localStorage.getItem('lang')==='en'}catch(e){}
+var TRD={"اكتب كل رقم في سطر (ينفع تكتب عملية زي 12*3). الإجمالي بيتحسب لوحده.": "Write each number on its own line (you can write an expression like 12*3). The total is calculated automatically.", "اللي بتحذفه بيفضل هنا 30 يوم وبعدها بيتمسح لوحده. تقدر ترجعه في أي وقت قبل كده.": "Deleted items stay here for 30 days, then are removed automatically. You can restore them any time before that.", "تصنيفات المصروف: الرئيسي في سطر، وتحته الفرعية كل واحد في سطر يبدأ بعلامة - (شرطة)": "Expense categories: main category on one line, then its subcategories each on its own line starting with - (dash)", "للمبلغ بالظبط اكتب نفس الرقم في الخانتين": "For an exact amount, type the same number in both boxes", "استيراد جماعي للتصنيفات (اختياري)": "Bulk import categories (optional)", "تصنيفات الدخل بنفس الطريقة": "Income categories, same way", "الدين ده مش بيأثر على رصيد أي محفظة.": "This debt does not affect any wallet balance.", "بيظهر أول 300 عملية. استخدم صفحة المعاملات للفلترة": "Showing the first 300 transactions. Use the Transactions page to filter", "بيظهر أول 300 عملية": "Showing the first 300 transactions", "بيظهر أول 100 عملية": "Showing the first 100 transactions", "بيظهر أول 50 عملية": "Showing the first 50 transactions", "مفيش تصنيفات. ضيف أول تصنيف من فوق.": "No categories. Add the first category above.", "لسه مفيش أشخاص. أي شخص تختاره في عملية بيتحفظ هنا لوحده": "No people yet. Anyone you pick in a transaction is saved here automatically", "أي شخص اتسجل في أي عملية بيتحفظ لوحده": "Anyone recorded in a transaction is saved automatically", "أي شخص تختاره في عملية بيتحفظ هنا لوحده": "Anyone you pick in a transaction is saved here automatically", "السيرفر اتأخر. العملية ممكن تكون اتحفظت، شوفها في المعاملات قبل ما تعيد": "The server is slow. The transaction may have been saved, check Transactions before retrying", "مفيش اتصال بالسيرفر. اتأكد من النت وجرب تاني": "No connection to the server. Check your internet and try again", "حط الرابط والمفتاح في الإعدادات": "Enter the link and key in Settings", "تغيّر الاسم في العمليات القديمة كمان؟\nاضغط موافق لتغيير القديم، وإلغاء لتغيير القايمة بس.": "Rename in old transactions too?\nPress OK to change the old ones, Cancel to change the list only.", "وكل الفرعي بتاعه من القايمة؟\nالعمليات القديمة هتفضل زي ما هي.": "and all its subcategories from the list?\nOld transactions stay as they are.", "من القايمة؟\nالعمليات القديمة هتفضل زي ما هي.": "from the list?\nOld transactions stay as they are.", "). النقل بيحافظ على المبالغ زي ما هي من غير تحويل عملة، فمتاح بين محفظتين بنفس العملة بس": "). Moving keeps amounts as they are with no currency conversion, so it is only available between wallets with the same currency", "تحويل (اللي بين المحفظتين دول هيفضلوا زي ما هما)\nالرصيد الافتتاحي مش هيتنقل.\nتكمل؟": "transfers (transfers between these two wallets stay as they are)\nThe opening balance is not moved.\nContinue?", "النقل بيحافظ على المبالغ زي ما هي من غير تحويل عملة، فمتاح بين محفظتين بنفس العملة بس": "Moving keeps amounts as they are with no currency conversion, so it is only available between wallets with the same currency", "العملتين مختلفتين، النقل مش هيشتغل": "Different currencies, moving will not work", "التعديل ما اتحفظش": "The edit was not saved", ". بياناتك رجعت في الشاشة، دوس حفظ التعديل تاني": ". Your data is back on screen, press Save changes again", ". بياناتك رجعت في الشاشة، دوس حفظ تاني (مش هيتكرر)": ". Your data is back on screen, press Save again (it will not be duplicated)", "جاري الحفظ... العملية ظاهرة في المعاملات وهتتأكد بعد ثواني": "Saving... the transaction shows in Transactions and will be confirmed in a few seconds", "تنقل العملية لسلة المهملات؟\nتقدر ترجعها خلال 30 يوم من المزيد > سلة المهملات.": "Move the transaction to the trash?\nYou can restore it within 30 days from More > Trash.", "تنقل التحويل لسلة المهملات؟\nتقدر ترجعه خلال 30 يوم من المزيد > سلة المهملات.": "Move the transfer to the trash?\nYou can restore it within 30 days from More > Trash.", "تنقل التحويل لسلة المهملات؟\nتقدر ترجعه خلال 30 يوم.": "Move the transfer to the trash?\nYou can restore it within 30 days.", "تنقل العملية الثابتة لسلة المهملات؟\nتقدر ترجعها خلال 30 يوم.": "Move the recurring transaction to the trash?\nYou can restore it within 30 days.", "تحذف نهائي؟ مش هتقدر ترجعها.": "Delete permanently? You cannot restore it.", "عنصر نهائي؟ مش هتقدر ترجعهم.": "items permanently? You cannot restore them.", ".\nالرصيد الافتتاحي هيتعدل لـ ": ".\nThe opening balance will change to ", "، والعمليات زي ما هي.\nتكمل؟": ", and transactions stay as they are.\nContinue?", ") والتحويلات (": ") and transfers (", ") المرتبطة بيها هتظهر بالاسم الجديد.\nتكمل؟": ") linked to it will show the new name.\nContinue?", "(المبالغ مش بتتحول).\n": "(amounts are not converted).\n", "المحفظة عليها عمليات، مينفعش تتحذف": "This wallet has transactions and cannot be deleted", "اكتب العملة 3 حروف زي EGP أو USD": "Type a 3-letter currency like EGP or USD", "العملة (EGP أو USD)": "Currency (EGP or USD)", "اكتب المبلغ اللي هيوصل بعملة المحفظة التانية": "Enter the amount that arrives, in the other wallet currency", "المبلغ اللي يوصل (بعملة المحفظة التانية)": "Amount received (in the other wallet currency)", "المبلغ (يخرج من المحفظة الأولى)": "Amount (leaves the first wallet)", "المبلغ (من - إلى)": "Amount (from - to)", "المتصفح مش بيدعم جهات الاتصال. افتح من Chrome": "This browser does not support contacts. Open it in Chrome", "التحويل مش موجود، حدّث الصفحة": "Transfer not found, refresh the page", "العملية مش موجودة، حدّث الصفحة": "Transaction not found, refresh the page", "الإجمالي لازم يكون أكبر من صفر": "The total must be greater than zero", "المفتاح السري (APP_TOKEN)": "Secret key (APP_TOKEN)", "رابط الـ API (من Apps Script)": "API link (from Apps Script)", "يوم الشهر (1 إلى 31)": "Day of month (1 to 31)", "ينفع تكتب عملية زي": "you can write an expression like", "قديمة (انشر إصدار جديد)": "old (publish a new version)", "الـ PDF أكبر من 5 ميجا": "The PDF is larger than 5 MB", "مرفق (صورة فاتورة أو PDF)": "Attachment (invoice photo or PDF)", "الشخص (اختياري)": "Person (optional)", "المفضلين (اضغط للاختيار)": "Favorites (tap to choose)", "العمليات الثابتة (أقساط وغيرها)": "Recurring transactions (installments etc.)", "عليه (هو مديون لي)": "Owes me (he owes me)", "ليه (أنا مديون له)": "I owe (I owe him)", "اكتب ملاحظتك هنا (اختياري)": "Write your note here (optional)", "مثلا: فيزا البنك الأهلي": "e.g. National Bank Visa", "مثلا: قسط الموبايل": "e.g. Phone installment", "اسم التصنيف الفرعي الجديد تحت ": "New subcategory name under ", "اسم التصنيف الفرعي تحت ": "Subcategory name under ", "اسم التصنيف الرئيسي الجديد": "New main category name", "اختار التصنيف الرئيسي الأول": "Choose the main category first", "اتحفظ على الجهاز بس": "Saved on this device only", "اتضافت واتختارت": "Added and selected", "اتنقلت التصنيفات للشيت": "Categories moved to the sheet", "العملية ظاهرة": "The transaction is shown", "نقل كل عمليات محفظة لمحفظة تانية": "Move all transactions of one wallet to another wallet", "الرصيد الحالي الفعلي للمحفظة": "Actual current balance of the wallet", "الرصيد الحالي هيبقى ": "The current balance will be ", "تفضي السلة وتحذف ": "Empty the trash and delete ", "هتغير اسم المحفظة من ": "Change wallet name from ", "العملة هتتغير من ": "Currency will change from ", "هتنقل من ": "Move from ", "الاسم الجديد للمحفظة": "New wallet name", "تحذف المحفظة؟": "Delete the wallet?", "اسم الشخص": "Person name", "بحث في نص الملاحظة أو الاسم": "Search note text or name", "ابحث عن تصنيف أو فرعي": "Search category or subcategory", "بحث في الملاحظات": "Search notes", "ابحث عن محفظة": "Search wallet", "ابحث عن شخص": "Search person", "اكتب كلمة من الملاحظة": "Type a word from the note", "اكتب اسم المحفظة": "Type the wallet name", "اكتب رقم صح": "Type a valid number", "اكتب المبلغ": "Enter the amount", "اكتب السبب": "Enter the reason", "اكتب الاسم": "Enter the name", "اختار محفظتين مختلفتين": "Choose two different wallets", "اختار من جهات الاتصال": "Choose from contacts", "اختيار من قايمة كاملة": "Choose from the full list", "اختار التصنيف": "Choose a category", "اختار الشخص": "Choose a person", "اضف محفظة الأول": "Add a wallet first", "ضيف محفظة من المزيد > المحافظ": "Add a wallet from More > Wallets", "ضيف محفظة من المزيد": "Add a wallet from More", "كمل البيانات": "Complete the details", "في رقم مش مفهوم": "There is a number I cannot read", "في محفظة تانية بنفس الاسم": "Another wallet has the same name", "التصنيف موجود، اخترته": "Category exists, selected it", "الفرعي موجود، اخترته": "Subcategory exists, selected it", "المحفظة موجودة، اخترتها": "Wallet exists, selected it", "ما اتضافتش": "Was not added", "جاري حفظ التعديل": "Saving changes", "جاري الإضافة": "Adding", "جاري الحفظ": "Saving", "الحفظ فشل": "Save failed", "السلة اتفضت": "Trash emptied", "السلة فاضية": "Trash is empty", "الرصيد اتضبط": "Balance adjusted", "اتنقلت للسلة": "Moved to trash", "اتنقل للسلة": "Moved to trash", "اتحذفت نهائي": "Deleted permanently", "تحذف نهائي؟": "Delete permanently?", "مش قادر أقرا الملف": "Cannot read the file", "نوع الملف مش مدعوم": "File type not supported", "الصورة مش بتفتح": "The image will not open", "المفتاح غلط": "Wrong key", "الاسم موجود": "Name already exists", "نسخة الكود المنشورة": "Published code version", "نسخة الواجهة": "Interface version", "الرصيد الافتتاحي مش هيتنقل": "The opening balance is not moved", "الرصيد الافتتاحي": "Opening balance", "رصيد افتتاحي": "Opening balance", "الرصيد الحالي": "Current balance", "إجمالي المحافظ حسب العملة": "Wallet totals by currency", "إجمالي الأرصدة": "Total balances", "المحافظ والتحويلات": "Wallets and transfers", "المحافظ والأرصدة": "Wallets and balances", "تحويل بين محافظ": "Transfer between wallets", "تفاصيل التحويل": "Transfer details", "حذف التحويل (للسلة)": "Delete transfer (to trash)", "حذف التحويل": "Delete transfer", "تنفيذ التحويل": "Make the transfer", "سجل التحويلات": "Transfer log", "عملة المحفظة التانية": "Other wallet currency", "بعملة المحفظة التانية": "in the other wallet currency", "عملة التقرير": "Report currency", "العمليات الثابتة": "Recurring transactions", "عملية ثابتة جديدة": "New recurring transaction", "تنقل العملية": "Move the transaction", "عملية ثابتة": "recurring transactions", "تعديل عملية": "Edit transaction", "إضافة عملية": "Add transaction", "إضافة دين قديم لشخص": "Add an old debt for a person", "نقل العمليات": "Move transactions", "آخر العمليات": "Recent transactions", "فتح كل العمليات": "Open all transactions", "عدد العمليات": "Number of transactions", "مفيش عمليات ثابتة": "No recurring transactions", "مفيش عمليات لسه": "No transactions yet", "مفيش عمليات": "No transactions", "مفيش محافظ": "No wallets", "مفيش أشخاص": "No people", "مفيش بيانات": "No data", "مفيش تحويلات": "No transfers", "مفيش ديون": "No debts", "مفيش نتيجة": "No results", "مفيش تصنيفات": "No categories", "المحفظة دي مفيهاش عمليات": "This wallet has no transactions", "مستحق الشهر ده": "Due this month", "دخل الشهر": "Month income", "مصروف الشهر": "Month expenses", "الشهر المختار": "Selected month", "كل الشهور": "All months", "يوم الشهر": "Day of month", "الدخل حسب التصنيف": "Income by category", "المصروف حسب التصنيف": "Expenses by category", "حسب طبيعة المعاملة": "By transaction nature", "طبيعة المعاملة": "Transaction nature", "تقرير شخص": "Person report", "التصنيف الرئيسي": "Main category", "التصنيف الفرعي": "Subcategory", "التصنيفات الفرعية": "Subcategories", "تصنيف رئيسي جديد": "New main category", "فرعي جديد تحت": "New subcategory under", "فرعي جديد": "New subcategory", "تصنيف جديد": "New category", "محفظة جديدة": "New wallet", "إدارة التصنيفات": "Manage categories", "تصنيفات المصروف": "Expense categories", "تصنيفات الدخل": "Income categories", "كل التصنيفات": "All categories", "كل الفرعية": "All subcategories", "كل الفرعي": "All subcategories", "كل المحافظ": "All wallets", "كل محافظ": "All wallets of", "بدون تصنيف": "No category", "بدون فرعي": "No subcategory", "لا دخل ولا مصروف": "Not income or expense", "دخل ومصروف": "Income and expenses", "نتائج البحث": "Search results", "الأكثر استخدامًا": "Most used", "سلة المهملات": "Trash", "حفظ التصنيفات في الشيت": "Save categories to the sheet", "حفظ الرابط والمفتاح": "Save link and key", "حفظ التعديل": "Save changes", "إلغاء التعديل": "Cancel editing", "تحديث البيانات": "Refresh data", "تفضية السلة": "Empty trash", "حذف نهائي": "Delete permanently", "تطبيق على المبلغ": "Apply to amount", "إضافة المحفظة": "Add wallet", "إضافة رقم": "Add a number", "إنشاء تصنيف": "Create category", "مسح الفلاتر": "Clear filters", "مسح الكل": "Clear all", "عرض المزيد": "Show more", "تغيير المحفظة": "Change wallet", "حاسبة المبلغ": "Amount calculator", "الوضع الليلي": "Dark mode", "نوع الدين": "Debt type", "دين عليه": "Debt: he owes me", "دين ليه": "Debt: I owe him", "سلفت حد": "I lent someone", "استلفت من حد": "I borrowed from someone", "حد سددلي": "Someone repaid me", "أنا سددت لحد": "I repaid someone", "سداد ليا": "Repayment to me", "سداد مني": "Repayment from me", "مديون لك": "Owes you", "انت مديون له": "You owe him", "عليه": "Owes me", "ليه": "I owe", "اتسجلت": "Recorded", "اتضافت": "Added", "اتضاف": "Added", "اتحفظت": "Saved", "اتحفظ": "Saved", "اتعدلت": "Updated", "اتعدل": "Updated", "اتحول": "Transferred", "اترجعت": "Restored", "اتحذفت": "Deleted", "اتلغى": "Cancelled", "اتغير في": "Changed in", "اتنقل": "Moved", "يخرج من المحفظة الأولى": "leaves the first wallet", "مش هيتكرر": "will not be duplicated", "تقدر ترجعه": "You can restore it", "ثابتة": "recurring", "عمليات": "transactions", "عملية": "transactions", "تحويلات": "transfers", "تحويل": "transfer", "العمليات": "Transactions", "التحويلات": "Transfers", "المعاملات": "Transactions", "الإعدادات": "Settings", "الرئيسية": "Home", "التقارير": "Reports", "المزيد": "More", "المحافظ": "Wallets", "المحفظة": "Wallet", "محفظة": "wallet", "الديون": "Debts", "الدين": "Debt", "دين": "Debt", "المفضلين": "Favorites", "رجوع": "Back", "مصروفي": "Masrofi", "العملة": "Currency", "الإجمالي": "Total", "الصافي": "Net", "الدخل": "Income", "المصروف": "Expenses", "مصروف": "Expense", "دخل": "Income", "التصنيف": "Category", "التاريخ": "Date", "الوقت": "Time", "الطبيعة": "Nature", "المبلغ": "Amount", "ملاحظة": "Note", "مرفق": "Attachment", "الشخص": "Person", "الاسم الجديد": "New name", "الاسم": "Name", "الموبايل": "Mobile", "النوع": "Type", "الكل": "All", "الشهر": "Month", "شهر": "Month", "أسبوع": "Week", "سنة": "Year", "يوم": "Day", "فلاتر": "Filters", "ابحث": "Search", "مسح": "Clear", "حفظ": "Save", "تعديل": "Edit", "حذف": "Delete", "استرجاع": "Restore", "تأكيد": "Confirm", "تخطي": "Skip", "إضافة": "Add", "تسويات": "Settlements", "اختياري": "optional", "السبب": "Reason", "الرصيد": "Balance", "حاسبة": "Calculator", "عادي": "Regular", "أساسي": "Essential", "ترفيهي": "Leisure", "عادية": "Regular", "أساسية": "Essential", "ترفيهية": "Leisure", "شغال": "Active", "موقوف": "Paused", "وقف": "Pause", "شغل": "Resume", "متصفي": "settled", "بدون": "None", "المختار": "Selected", "مع": "with", "من": "From", "إلى": "To", "أو": "or", "عملة": "Currency", "كاش": "Cash", "فيزا": "Visa", "ماستركارد": "Mastercard", "حساب بنكي": "Bank account", "محفظة موبايل": "Mobile wallet", "معادن ثمينة": "Precious metals", "أخرى": "Other", "الثابتة": "Recurring", "فرعي": "Sub", "سلفت": "Lent", "استلفت": "Borrowed", "الأحد": "Sunday", "الاثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday", "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday", "رصيد": "Balance", "تحذف": "Delete", "لـ": "to", "و": "and", "العملتين مختلفتين": "Different currencies"};
+var AR_RE=/[\u0600-\u06FF]/,AR_L='\u0621-\u064A\u0671-\u06D3';var AR_LRE=new RegExp('['+AR_L+']');
+var TRK=Object.keys(TRD).sort(function(a,b){return b.length-a.length});
+function trEsc(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+var TRX=new RegExp(TRK.map(function(k){return (AR_LRE.test(k.charAt(0))?'(?<!['+AR_L+'])':'')+trEsc(k)+(AR_LRE.test(k.charAt(k.length-1))?'(?!['+AR_L+'])':'')}).join('|'),'g');
+var LOW={'إلى':'to','من':'from','مع':'with','أو':'or','يوم':'day'};
+function TRS(s,strict){if(!EN||s==null)return s;s=String(s);if(!AR_RE.test(s))return s;
+  s=s.replace(/(^|[^\d.])1 عملية/g,'$11 transaction');var rest=s.replace(TRX,'');if(strict&&AR_LRE.test(rest))return s;
+  return s.replace(TRX,function(m){return (!strict&&LOW[m])||TRD[m]}).replace(/،/g,',').replace(/؟/g,'?');}
+function TR(s){return TRS(s,false)}
+if(EN){document.documentElement.lang='en';document.documentElement.dir='ltr';document.title='Masrofi';
+ var _c=window.confirm,_p=window.prompt,_a=window.alert;
+ window.confirm=function(m){return _c.call(window,TR(m))};
+ window.prompt=function(m,d){return _p.call(window,TR(m),d)};
+ window.alert=function(m){return _a.call(window,TR(m))};
+ var AR_M0=['January','February','March','April','May','June','July','August','September','October','November','December'];
+}
+</script>
 <script>
 var ICONS={
 home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
@@ -477,7 +501,7 @@ function applyTheme(){var e=effTheme(),t=localStorage.getItem('theme');
   if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');
   $('themeBtn').innerHTML=e==='dark'?ic('sun'):ic('moon');
   var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',e==='dark'?'#0b4f4a':'#0f766e')}
-function msg(t,keep){var m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(msg.t);if(!keep)msg.t=setTimeout(function(){m.style.display='none'},2600)}
+function msg(t,keep){var m=$('msg');m.textContent=TR(t);m.style.display='block';clearTimeout(msg.t);if(!keep)msg.t=setTimeout(function(){m.style.display='none'},2600)}
 function p2(n){return ('0'+n).slice(-2)}
 function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
 function nowTime(){var d=new Date();return p2(d.getHours())+':'+p2(d.getMinutes())}
@@ -572,7 +596,7 @@ function txRow(r,withDel){
   var inc=!!PLUS[r.type],debt=isDebt(r.type);
   var cls=debt?'db':inc?'in':'out',sym=ic(debt?'users':catIc(r.category));
   var title=debt?(TYPES[r.type]+' - '+(r.person||'')):(r.category||TYPES[r.type]);
-  var sub=[r.subcategory,r.date+(r.time&&r.time!=='00:00'?' '+r.time:''),wname(r.wallet),debt?'':(r.person?'مع '+r.person:''),r.note].filter(Boolean).join(' | ');
+  var sub=[r.subcategory,r.date+(r.time&&r.time!=='00:00'?' '+r.time:''),wname(r.wallet),debt?'':(r.person?TR('مع ')+r.person:''),r.note].filter(Boolean).join(' | ');
   return '<div class="row'+(r._pend?' pending':' tap')+'"'+(r._pend?'':' data-txid="'+esc(r.id)+'"')+'><div class="ic '+cls+'">'+sym+'</div><div class="mid"><b>'+esc(title)+'</b><small>'+(r._pend?'<span class="pend">جاري الحفظ... </span>':'')+esc(sub)+(r.file?' <a href="https://drive.google.com/file/d/'+esc(r.file)+'/view" target="_blank">مرفق</a>':'')+'</small></div><div class="amt '+(inc?'in-c':'out-c')+'">'+(inc?'+':'-')+num(r.amount)+(wcur(r.wallet)!=='EGP'?' <small>'+wcur(r.wallet)+'</small>':'')+'</div>'+(r.type==='expense'&&withDel?'<button class="sm sec natb" data-natid="'+esc(r.id)+'">'+natL(nat(r))+'</button>':'')+(withDel?'<button class="sm del" data-id="'+esc(r.id)+'">حذف</button>':'')+'</div>';
 }
 function bySort(a,b){return (a.date+a.time)<(b.date+b.time)?1:-1}
@@ -603,7 +627,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
   api({action:'setSetting',key:'homeWallet',value:id}).then(function(){msg('اتحفظ ✓')}).catch(function(er){msg(String(er))});
 });
 var LV={view:'day',lim:30};
-var AR_M=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],AR_D=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+var AR_M=EN?['January','February','March','April','May','June','July','August','September','October','November','December']:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],AR_D=EN?['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 function dparts(s){var p=String(s).slice(0,10).split('-');return {y:+p[0],m:+p[1],d:+p[2]}}
 function dUTC(s){var p=dparts(s);return new Date(Date.UTC(p.y,p.m-1,p.d))}
 function iso(d){return d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate())}
@@ -621,7 +645,7 @@ function grpLabel(k){
   if(v==='month'){var p=k.split('-');return AR_M[+p[1]-1]+' '+p[0]}
   if(v==='year')return k;
   var d=dUTC(k),e=new Date(d.getTime());e.setUTCDate(e.getUTCDate()+6);
-  return 'من '+dparts(iso(d)).d+' '+AR_M[d.getUTCMonth()]+' إلى '+e.getUTCDate()+' '+AR_M[e.getUTCMonth()]+' '+e.getUTCFullYear();
+  return TR('من ')+dparts(iso(d)).d+' '+AR_M[d.getUTCMonth()]+TR(' إلى ')+e.getUTCDate()+' '+AR_M[e.getUTCMonth()]+' '+e.getUTCFullYear();
 }
 function sumByCur(list){
   var g={};list.forEach(function(r){var c=wcur(r.wallet),o=g[c]=g[c]||{inc:0,exp:0};if(r.type==='income')o.inc+=r.amount;else if(r.type==='expense')o.exp+=r.amount});
@@ -802,7 +826,7 @@ function subUse(main){var c={};S.data.Transactions.forEach(function(r){if(r.cate
 function renderChips(){
   var tree=curTree();
   var sel=A.main?catLabel(A.main,A.sub):'';
-  $('catSel').classList.toggle('hide',!sel);$('catSelTxt').textContent=sel?'المختار: '+sel:'';
+  $('catSel').classList.toggle('hide',!sel);$('catSelTxt').textContent=sel?TR('المختار: ')+sel:'';
   $('resWrap').classList.add('hide');$('browse').classList.add('hide');
   A.freq=freqList().filter(function(r){return tree.some(function(c){return c.name===r.main})}).slice(0,5);
   if(!A.freq.length)A.freq=tree.slice(0,5).map(function(c){return {main:c.name,sub:''}});
@@ -1271,9 +1295,9 @@ function renderPicker(){
     S.data.Wallets.slice().sort(function(a,b){return (cnt[b.id]||0)-(cnt[a.id]||0)}).forEach(function(w){if(!q||nq(w.name).indexOf(q)>=0)items.push({t:w.name,sm:cc_(w),on:$('wallet').value===w.id,w:w.id})});
   }
   var raw=$('pkSearch').value.trim(),cr=[],q2=raw?' "'+raw+'"':'';
-  if(PK.kind==='cat'){cr.push({t:'+ تصنيف رئيسي جديد'+q2,create:'main',pre:raw});if(A.main)cr.push({t:'+ فرعي جديد تحت '+A.main+q2,create:'sub',pre:raw})}
-  else if(PK.kind==='sub'){cr.push({t:'+ فرعي جديد تحت '+A.main+q2,create:'sub',pre:raw})}
-  else cr.push({t:'+ محفظة جديدة'+q2,create:'wal',pre:raw});
+  if(PK.kind==='cat'){cr.push({t:TR('+ تصنيف رئيسي جديد')+q2,create:'main',pre:raw});if(A.main)cr.push({t:TR('+ فرعي جديد تحت ')+A.main+q2,create:'sub',pre:raw})}
+  else if(PK.kind==='sub'){cr.push({t:TR('+ فرعي جديد تحت ')+A.main+q2,create:'sub',pre:raw})}
+  else cr.push({t:TR('+ محفظة جديدة')+q2,create:'wal',pre:raw});
   items=cr.concat(items);
   PK.items=items;
   $('pkList').innerHTML=items.length?items.map(function(it,i){return '<button type="button" class="pkrow'+(it.on?' on':'')+(it.create?' new':'')+'" data-pki="'+i+'">'+(it.ic?ic(it.ic):'')+esc(it.t)+(it.sm?'<small>'+esc(it.sm)+'</small>':'')+'</button>'}).join(''):'<div class="empty">مفيش نتيجة</div>';
@@ -1433,10 +1457,31 @@ function renderTrash(){
     return '<div class="row"><div class="mid"><b>'+esc(t)+'</b><small>'+esc(sub)+'</small></div><div class="amt">'+num(d.amount||0)+'</div><button class="sm" data-trr="'+esc(x.id)+'">استرجاع</button><button class="sm del" data-trd="'+esc(x.id)+'">حذف نهائي</button></div>'}).join(''):'<div class="empty">السلة فاضية</div>';
 }
 var _r0=render;render=function(){_r0();renderTrash();renderDrill()};
-var FE_VER='2026-11-25c';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
+var FE_VER='2026-11-25d';if($('feVer'))$('feVer').textContent='نسخة الواجهة: '+FE_VER;
 applyTheme();
 setKind('expense');
 go('home');if(S.url&&S.token)load();
+</script>
+<script>
+(function(){
+function setLang(l){try{localStorage.setItem('lang',l)}catch(e){}location.reload()}
+var a=document.getElementById('langAr'),e=document.getElementById('langEn');
+if(a){a.onclick=function(){setLang('ar')};e.onclick=function(){setLang('en')};(EN?e:a).classList.add('on')}
+if(!EN)return;
+var ATTRS=['placeholder','aria-label','title'];
+function doNode(n){
+ if(n.nodeType===3){var p=n.parentNode;if(!p||/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName))return;var v=n.nodeValue;if(AR_RE.test(v)){var t=TRS(v,true);if(t!==v)n.nodeValue=t}}
+ else if(n.nodeType===1){if(/^(SCRIPT|STYLE)$/.test(n.nodeName))return;
+  ATTRS.forEach(function(at){var v=n.getAttribute&&n.getAttribute(at);if(v&&AR_RE.test(v)){var t=TRS(v,true);if(t!==v)n.setAttribute(at,t)}});
+  for(var c=n.firstChild;c;c=c.nextSibling)doNode(c)}
+}
+var busy=false;
+var mo=new MutationObserver(function(ms){if(busy)return;busy=true;
+ ms.forEach(function(m){if(m.type==='characterData')doNode(m.target);else if(m.type==='attributes')doNode(m.target);else m.addedNodes.forEach(doNode)});
+ busy=false});
+doNode(document.body);
+mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+})();
 </script>
 </body>
 </html>
